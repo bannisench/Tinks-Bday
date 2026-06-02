@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0"> 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;700&family=Great+Vibes&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+
+<title>Surprise</title>
+
+<style>
+/* --- PRESERVED ORIGINAL STYLES --- */
+*{ margin:0; padding:0; box-sizing:border-box; font-family: 'Montserrat', sans-serif; }
+h1, h2, #welcome h1 { font-family: 'Cormorant Garamond', serif; }
+body { overflow:hidden; background:black; height: 100%; }
+html { height: 100%; }
+
+.page{ position:absolute; inset:0; display:flex; justify-content:center; align-items:center; transition:.6s; }
+.hidden{ opacity:0; pointer-events:none; }
+
+/* Welcome & Showcase Styles */
+#welcome { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; }
+.bg-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+.top-left-branding { position: absolute; top: 25px; left: 30px; z-index: 10; display: flex; flex-direction: column; }
+.calligraphy-title { font-family: 'Great Vibes', cursive; font-size:150px; color: #ffffff; line-height: 0.9; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); }
+.calligraphy-subtext { font-size: 0.75rem; font-weight: 600; color: rgba(255, 255, 255, 0.75); letter-spacing: 3px; text-transform: uppercase; padding-left: 5px; }
+#welcome h1 { color: #fff; font-size: 3rem; z-index: 10; margin-bottom: 80px; }
+#welcome button { padding: 16px 40px; border: none; border-radius: 40px; background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); color: #fff; cursor: pointer; font-size: 1.1rem; position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%); z-index: 10; }
+.floating-container { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+.float-element { position: absolute; animation: float 8s ease-in-out infinite; }
+.float-emoji { position: absolute; white-space: nowrap; opacity: 0.7; }
+@keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-50px) rotate(10deg); } }
+
+#showcase{ background-image: url('back.png'); background-size: cover; padding:30px; }
+.card { width: min(2500px, 95vw); height: min(920px, 90vh); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 40px; display: flex; overflow: hidden; position: relative; }
+.left{ width:40%; padding:80px 60px; display:flex; flex-direction:column; justify-content:center; }
+.left h2{ font-size:4rem; color:white; margin-bottom:20px; font-weight:900; }
+.left p{ color:rgba(255,255,255,.9); line-height:1.8; font-size:1rem; max-width:420px; }
+.right{ width:60%; position:relative; overflow:hidden; }
+.slide{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); transition:all .8s cubic-bezier(.2,.9,.2,1); }
+.slide img { height: 900px; width: 700px; object-fit: cover; }
+.active{ opacity:1; z-index:3; transform:translate(-50%,-50%) scale(1); }
+.next { left: 85%; opacity: .45; filter: blur(8px); transform: translate(-50%, -50%) scale(.75); }
+.prev{ left:25%; opacity:0; }
+.hide{ opacity:0; }
+.controls{ position:absolute; bottom:40px; left:50%; transform:translateX(-50%); display:flex; gap:20px; }
+.arrow{ width:55px; height:55px; border: 1px solid #5a5a5aab; border-radius:50%; background:#60606047; cursor:pointer; color: white; }
+#nextPage{ position:absolute; bottom:40px; right:40px; padding:15px 30px; border:none; border-radius:30px; background:rgba(255,255,255,0.1); backdrop-filter: blur(10px); cursor:pointer; display:none; color: white; }
+
+/* --- NEW CROSSWORD & MOSAIC STYLES --- */
+#final { background: black; flex-direction: column; overflow: hidden; }
+
+/* Puzzle Screen */
+.puzzle-card { padding: 40px; gap: 40px; display: flex; align-items: center; background: radial-gradient(circle, rgba(168, 85, 247, 0.2), rgba(0, 0, 0, 0.8)); }
+.puzzle-left { width: 40%; color: white; }
+.puzzle-left h2 { font-size: 3rem; margin-bottom: 15px; }
+.clue-section h3 { font-family: 'Cormorant Garamond', serif; color: #dfb2ff; margin: 15px 0 5px 0; }
+.clue-section li { font-size: 0.9rem; margin-bottom: 5px; color: rgba(255,255,255,0.8); list-style: none; }
+.clue-num { background: rgba(255,255,255,0.15); padding: 2px 6px; border-radius: 4px; margin-right: 5px; font-size: 0.7rem; }
+
+.crossword-grid { display: grid; grid-template-columns: repeat(5, 60px); grid-template-rows: repeat(5, 60px); gap: 10px; }
+.grid-cell { position: relative; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; }
+.grid-cell input { width: 100%; height: 100%; border: none; background: transparent; text-align: center; color: white; font-size: 1.5rem; font-weight: bold; text-transform: uppercase; outline: none; }
+.grid-cell input:focus { background: rgba(255,255,255,0.1); }
+.cell-num-label { position: absolute; top: 2px; left: 4px; font-size: 0.6rem; color: rgba(255,255,255,0.5); }
+.grid-spacer { visibility: hidden; }
+
+/* Mosaic Animation Styles */
+#mosaic-screen { position: absolute; inset: 0; display: none; z-index: 100; overflow: hidden; }
+.mosaic-bg { position: absolute; inset: 0; background-image: url('back.png'); background-size: cover; opacity: 0.3; z-index: 1; }
+.mosaic-wrapper { position: absolute; top: -20%; left: -10%; width: 120%; height: 140%; transform: rotate(-15deg); display: flex; flex-direction: column; gap: 30px; z-index: 2; }
+.photo-row { width: 100%; overflow: hidden; display: flex; }
+.track { display: flex; gap: 30px; }
+
+.move-right .track { animation: slideRight 45s linear infinite; }
+.move-left .track { animation: slideLeft 45s linear infinite; }
+@keyframes slideRight { 0% { transform: translateX(-50%); } 100% { transform: translateX(0); } }
+@keyframes slideLeft { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+.memory-tile { width: 240px; height: 340px; perspective: 1000px; flex-shrink: 0; cursor: pointer; }
+.tile-inner { width: 100%; height: 100%; position: relative; transition: transform 0.6s; transform-style: preserve-3d; }
+.memory-tile.is-flipped .tile-inner { transform: rotateY(180deg); }
+.tile-front, .tile-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 15px; transform: rotate(15deg); border: 1px solid rgba(255,255,255,0.2); }
+.tile-front { background-size: cover; background-position: center; }
+.tile-back { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); transform: rotateY(180deg) rotate(15deg); display: flex; align-items: center; justify-content: center; padding: 20px; color: white; text-align: center; font-size: 0.85rem; }
+
+/* Branding */
+.rick-branding { position: absolute; bottom: 0; left: 0; width: 600px; height: 350px; background: radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.5), transparent 70%); z-index: 101; display: flex; flex-direction: column; justify-content: flex-end; padding: 50px; pointer-events: none; opacity: 0; transition: 2s; }
+.bday-text { font-family: 'Great Vibes', cursive; font-size: 6rem; color: white; line-height: 1; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+.from-text { letter-spacing: 5px; font-size: 0.8rem; color: rgba(255, 255, 255, 0.7); text-transform: uppercase; margin-top: 10px; }
+
+@media(max-width:900px){
+    .card { flex-direction:column; height:100vh; border-radius:0; }
+    .slide img { height: 420px; width: 300px; }
+    .puzzle-card { flex-direction: column; overflow-y: auto; }
+    .puzzle-left { width: 100%; }
+    .crossword-grid { transform: scale(0.8); }
+    .bday-text { font-size: 3.5rem; }
+}
+
+#to-blank-btn {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    padding: 16px 35px;
+    border: none;
+    border-radius: 30px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 105; /* Keeps it above the moving photo tracks */
+    transition: all 0.3s ease;
+    opacity: 0; /* Starts hidden, fades in with the branding */
+}
+
+#to-blank-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+
+#blank-page {
+    background: #000; /* Completely black canvas ready for whatever you build next */
+    z-index: 200;
+}
+
+
+/* Video React Effect */
+#react-video {
+    filter: blur(8px) brightness(0.6);
+    transition: filter 0.3s ease;
+}
+
+/* Particle Canvas */
+#particle-canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+}
+
+/* Wiggling Button */
+#scratch-trigger {
+    position: absolute;
+    bottom: 40px;
+    left: 40px;
+    z-index: 100;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: wiggle 2s infinite;
+}
+
+#scratch-trigger img { width: 80px; filter: drop-shadow(0 0 10px #a855f7); }
+#scratch-trigger span { color: white; font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; margin-top: 5px; }
+
+@keyframes wiggle {
+    0%, 100% { transform: rotate(-5deg) scale(1); }
+    50% { transform: rotate(5deg) scale(1.1); }
+}
+
+/* Scratch Modal */
+#scratch-modal {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 200;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(10px);
+    transition: 0.5s;
+}
+
+.scratch-container {
+    position: relative;
+    width: 350px;
+    height: 500px;
+    background: #1a1a1a;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 2px solid #a855f7;
+}
+
+#scratch-canvas {
+    position: absolute;
+    inset: 0;
+    cursor: crosshair;
+    z-index: 10;
+}
+
+.note-area {
+    padding: 40px;
+    color: white;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem;
+    line-height: 1.6;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.close-scratch {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+    z-index: 20;
+}
+
+</style>
+</head>
+<body>
+
+<section id="welcome" class="page">
+    <video autoplay loop muted playsinline class="bg-video">
+        <source src="video2.mp4" type="video/mp4">
+    </video>
+    <div class="top-left-branding">
+        <div class="calligraphy-title">Tinks Birthday</div>
+        <div class="calligraphy-subtext">a young lady ready for whatever life throws at her</div>
+    </div>
+    <div class="floating-container"></div>
+    <h1>A Little Surprise</h1>
+    <button onclick="startExperience()">catch me if you can</button>
+</section>
+
+<section id="showcase" class="page hidden">
+    <div class="card">
+        <div class="left">
+            <h2 id="title">Beautiful Moments</h2>
+            <p id="description">Some people make life brighter simply by being in it.</p>
+        </div>
+        <div class="right" id="imageArea">
+            <div class="slide"><img src="Her1.png"></div>
+            <div class="slide"><img src="Her2.png"></div>
+            <div class="slide"><img src="Her3.png"></div>
+            <div class="slide"><img src="Her4.png"></div>
+            <div class="slide"><img src="Her5.png"></div>
+        </div>
+        <div class="controls">
+            <button class="arrow" onclick="previousSlide()">←</button>
+            <button class="arrow" onclick="nextSlide()">→</button>
+        </div>
+        <button id="nextPage" onclick="openFinalPage()">Continue</button>
+    </div>
+</section>
+
+<section id="final" class="page hidden">
+    <div id="puzzle-screen" class="card puzzle-card">
+        <div class="puzzle-left">
+            <h2>The Final Key</h2>
+            <p>Solve this to unlock my birthday message.</p>
+            <div class="clue-section">
+                <h3>Across</h3>
+                <ul>
+                    <li><span class="clue-num">1</span> Your smile brightens the world.</li>
+                    <li><span class="clue-num">3</span> Four letters for your style.</li>
+                </ul>
+                <h3>Down</h3>
+                <ul>
+                    <li><span class="clue-num">2</span> Plays in our favorite moments.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="crossword-grid">
+            <div class="grid-cell"><span class="cell-num-label">1</span><input type="text" maxlength="1" data-ans="S"></div>
+            <div class="grid-cell"><span class="cell-num-label">2</span><input type="text" maxlength="1" data-ans="M"></div>
+            <div class="grid-cell"><input type="text" maxlength="1" data-ans="I"></div>
+            <div class="grid-cell"><input type="text" maxlength="1" data-ans="L"></div>
+            <div class="grid-cell"><input type="text" maxlength="1" data-ans="E"></div>
+            <div class="grid-spacer"></div><div class="grid-cell"><input type="text" maxlength="1" data-ans="U"></div><div class="grid-spacer"></div><div class="grid-spacer"></div><div class="grid-spacer"></div>
+            <div class="grid-spacer"></div><div class="grid-cell"><input type="text" maxlength="1" data-ans="S"></div><div class="grid-spacer"></div><div class="grid-spacer"></div><div class="grid-spacer"></div>
+            <div class="grid-spacer"></div><div class="grid-cell"><input type="text" maxlength="1" data-ans="I"></div><div class="grid-spacer"></div><div class="grid-spacer"></div><div class="grid-spacer"></div>
+            <div class="grid-spacer"></div><div class="grid-cell"><span class="cell-num-label">3</span><input type="text" maxlength="1" data-ans="C"></div>
+            <div class="grid-cell"><input type="text" maxlength="1" data-ans="U"></div>
+            <div class="grid-cell"><input type="text" maxlength="1" data-ans="T"></div>
+            <div class="grid-cell"><input type="text" maxlength="1" data-ans="E"></div>
+        </div>
+    </div>
+
+    <div id="mosaic-screen">
+        <div class="mosaic-bg"></div>
+        <div class="mosaic-wrapper">
+            <div class="photo-row move-right"><div class="track" id="track1"></div></div>
+            <div class="photo-row move-left"><div class="track" id="track2"></div></div>
+            <div class="photo-row move-right"><div class="track" id="track3"></div></div>
+            <div class="photo-row move-left"><div class="track" id="track4"></div></div>
+        </div>
+        <div class="rick-branding" id="final-brand">
+            <div class="bday-text">Happy Birthday</div>
+            <div class="from-text">from rick</div>
+        </div>
+    </div>
+</section>
+
+<section id="blank-page" class="page hidden">
+    <video autoplay loop muted playsinline class="blank-bg-video" id="react-video">
+        <source src="final_video.mp4" type="video/mp4">
+    </video>
+    
+    <canvas id="particle-canvas"></canvas>
+
+    <div class="blank-content">
+        <h1 class="custom-bday-text">Happy Birthday</h1>
+    </div>
+
+    <div id="scratch-trigger" onclick="openScratchCard()">
+        <img src="gift_icon.png" alt="Open Me"> <span>Scratch Me!</span>
+    </div>
+
+    <div id="scratch-modal" class="hidden">
+        <div class="scratch-container">
+            <button class="close-scratch" onclick="closeScratchCard()">×</button>
+            <div class="note-area">
+                <p id="typewriter-note"></p>
+            </div>
+            <canvas id="scratch-canvas"></canvas>
+        </div>
+    </div>
+</section>
+
+
+<audio id="audio1" src="Song1.mp3" loop></audio>
+<audio id="audio2" src="song2.mp3" loop></audio>
+🤭
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+/* --- PRESERVED LOGIC --- */
+const container = document.querySelector('.floating-container');
+const emojis = ['💜', '🟣', '🎁', '💝', '✨', '🎉', '🌸', '⭐'];
+function spawnEmojis() {
+    for (let i = 0; i < 40; i++) {
+        const emoji = document.createElement('div');
+        emoji.className = 'float-element float-emoji';
+        emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        emoji.style.left = Math.random() * 100 + 'vw'; emoji.style.top = Math.random() * 100 + 'vh';
+        emoji.style.fontSize = (Math.random() * 2 + 1) + 'rem';
+        emoji.style.animationDuration = (Math.random() * 5 + 5) + 's';
+        container.appendChild(emoji);
+    }
+}
+spawnEmojis();
+
+const slidesData = [
+    { title: "Hyper-Focused on Your Unstoppable Gravity", text: "Today the world should pause to appreciate how incredible you are. You have this magnetic charm that makes it impossible for anyone not to notice when you're around. You’re gorgeous, brilliant, and completely unmatched.", gradient: "radial-gradient(circle, rgba(99, 180, 255, 0.6), rgba(99, 180, 255, 0.2))" },
+    { title: "Rare Frequency of Someone Otherworldly", text: "Happy Birthday to the girl who sets the bar way too high. There is an ethereal quality to you—the way you command a room and the confidence you wear so well. You are a total standout.", gradient: "radial-gradient(circle, rgba(255, 107, 163, 0.6), rgba(255, 107, 163, 0.2))" },
+    { title: "A Celebration of the Constellation That Is You", text: "You are genuinely a masterpiece. If the universe spent thousands of years aligning stars just to create one perfect person, it hit the mark with you. You are completely irreplaceable.", gradient: "radial-gradient(circle, rgba(168, 85, 247, 0.6), rgba(168, 85, 247, 0.2))" },
+    { title: "A Supernova Wrapped in Human Form", text: "Happy Birthday to a girl who is a literal supernova of style and energy. The universe decided to drop its absolute finest creation into the world today. Admire the masterpiece you are.", gradient: "radial-gradient(circle, rgba(211,5,5,0.654), rgba(249,54,54,0.401))" },
+    { title: "One More Thing...", text: "There's something waiting for you.", gradient: "radial-gradient(circle, rgba(249,207,22,0.732), rgba(247,249,22,0.406))" }
+];
+
+const slides = document.querySelectorAll(".slide");
+const card = document.querySelector(".card");
+const title = document.getElementById("title");
+const description = document.getElementById("description");
+const nextPage = document.getElementById("nextPage");
+let current = 0;
+
+function updateSlides(){
+    slides.forEach(slide => { slide.className="slide hide"; });
+    slides[current].className="slide active";
+    if(current < slides.length-1){ slides[current+1].className="slide next"; }
+    if(current > 0){ slides[current-1].className="slide prev"; }
+    title.textContent = slidesData[current].title;
+    description.textContent = slidesData[current].text;
+    card.style.backgroundImage = slidesData[current].gradient;
+    if(current === slides.length-1){ nextPage.style.display="block"; }
+}
+function nextSlide(){ if(current < slides.length-1){ current++; updateSlides(); } }
+function previousSlide(){ if(current > 0){ current--; updateSlides(); } }
+document.getElementById("imageArea").addEventListener("click", nextSlide);
+
+function startExperience(){
+    confetti({ particleCount: 140, spread: 80, origin: { y: 0.6 } });
+    document.getElementById("welcome").classList.add("hidden");
+    document.getElementById("audio1").play();
+    setTimeout(()=>{ document.getElementById("showcase").classList.remove("hidden"); },300);
+}
+
+function openFinalPage(){
+    const audio1 = document.getElementById("audio1");
+    const audio2 = document.getElementById("audio2");
+    audio1.pause(); audio2.play();
+    document.getElementById("showcase").classList.add("hidden");
+    setTimeout(()=>{ document.getElementById("final").classList.remove("hidden"); },300);
+}
+
+/* --- NEW INTERACTIVE LOGIC --- */
+
+// Build Mosaic Tracks
+const trackContents = [
+    [21,22,23,24,25], [6,7,8,9,10], [11,12,13,14,15], [16,17,18,19,20]
+];
+const messages = ["Radiant. ✨", "Magic. 💜", "Stunning. 🌸", "Masterpiece. 🎨", "Glow. ☀️", "Iconic. 🪄", "Boss. 💅", "The Main Character. 🎬", "Captivating. 😍", "Shine. ⭐", "Grace. 🦢", "Fine art. 🎭", "Special. 🌈", "Elegant. 💎", "Joy. 😊", "Unstoppable. 🚀", "Breath-taking. 🌬️", "One in a billion. 🌌", "Limitless. ♾️", "Happy Birthday! 🎂"];
+
+function buildMosaic() {
+    trackContents.forEach((ids, index) => {
+        const track = document.getElementById(`track${index + 1}`);
+        const fullIds = [...ids, ...ids]; // Duplicate for infinite scroll
+        fullIds.forEach((id, i) => {
+            const tile = document.createElement('div');
+            tile.className = 'memory-tile';
+            tile.onclick = () => tile.classList.toggle('is-flipped');
+            tile.innerHTML = `
+                <div class="tile-inner">
+                    <div class="tile-front" style="background-image:url('Her${id}.png')"></div>
+                    <div class="tile-back"><p>${messages[id-1]}</p></div>
+                </div>`;
+            track.appendChild(tile);
+        });
+    });
+}
+buildMosaic();
+
+// Crossword Logic
+document.querySelectorAll('.grid-cell input').forEach((input, idx, array) => {
+    input.addEventListener('input', (e) => {
+        if (e.target.value.length === 1 && idx < array.length - 1) {
+            array[idx + 1].focus();
+        }
+        checkPuzzle();
+    });
+});
+
+function checkPuzzle() {
+    const inputs = document.querySelectorAll('.grid-cell input');
+    let correct = true;
+    inputs.forEach(input => {
+        if(input.value.toUpperCase() !== input.dataset.ans) correct = false;
+    });
+
+    if(correct) {
+        document.getElementById('puzzle-screen').style.opacity = '0';
+setTimeout(() => {
+    document.getElementById('puzzle-screen').style.display = 'none';
+    document.getElementById('mosaic-screen').style.display = 'block';
+    setTimeout(() => {
+        document.getElementById('final-brand').style.opacity = '1';
+        document.getElementById('to-blank-btn').style.opacity = '1'; // Fades the button in smoothly
+        confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 } });
+    }, 500);
+}, 600);
+}}
+
+updateSlides();
+
+function openBlankPage() {
+    // Fade out the entire puzzle/mosaic container
+    document.getElementById("final").classList.add("hidden");
+    
+    // Bring up the pristine blank page right after
+    setTimeout(() => {
+        document.getElementById("blank-page").classList.remove("hidden");
+    }, 600);
+}
+
+// --- 1. HEART & SPARKLE RAIN ---
+const pCanvas = document.getElementById('particle-canvas');
+const pCtx = pCanvas.getContext('2d');
+let particles = [];
+
+function resizeCanvas() {
+    pCanvas.width = window.innerWidth;
+    pCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+class Particle {
+    constructor(x, y, type) {
+        this.x = x;
+        this.y = y;
+        this.size = Math.random() * 20 + 10;
+        this.speedX = Math.random() * 6 - 3;
+        this.speedY = Math.random() * -5 - 2;
+        this.gravity = 0.1;
+        this.opacity = 1;
+        this.type = type; // 'heart' or 'sparkle'
+    }
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        this.speedY += this.gravity;
+        this.opacity -= 0.01;
+    }
+    draw() {
+        pCtx.globalAlpha = this.opacity;
+        if (this.type === 'heart') {
+            pCtx.fillStyle = '#a855f7';
+            pCtx.font = `${this.size}px serif`;
+            pCtx.fillText('💜', this.x, this.y);
+        } else {
+            pCtx.fillStyle = '#fff';
+            pCtx.beginPath();
+            pCtx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+            pCtx.fill();
+        }
+    }
+}
+
+function handleTouch(e) {
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+    
+    // Video React: Clear blur on touch
+    document.getElementById('react-video').style.filter = 'blur(0px) brightness(1)';
+
+    for (let i = 0; i < 5; i++) {
+        particles.push(new Particle(x, y, Math.random() > 0.5 ? 'heart' : 'sparkle'));
+    }
+}
+
+function animateParticles() {
+    pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+    for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+        if (particles[i].opacity <= 0) {
+            particles.splice(i, 1);
+            i--;
+        }
+    }
+    requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+// Listeners for Video React and Particles
+const blankSec = document.getElementById('blank-page');
+blankSec.addEventListener('mousemove', handleTouch);
+blankSec.addEventListener('touchstart', handleTouch);
+blankSec.addEventListener('touchend', () => {
+    document.getElementById('react-video').style.filter = 'blur(8px) brightness(0.6)';
+});
+
+// --- 2. SCRATCH OFF LOGIC ---
+const sCanvas = document.getElementById('scratch-canvas');
+const sCtx = sCanvas.getContext('2d');
+let isScratching = false;
+
+function initScratch() {
+    sCanvas.width = 350;
+    sCanvas.height = 500;
+    // Cover with a "premium" silver/purple gradient
+    const grad = sCtx.createLinearGradient(0,0,350,500);
+    grad.addColorStop(0, '#a855f7');
+    grad.addColorStop(1, '#6b21a8');
+    sCtx.fillStyle = grad;
+    sCtx.fillRect(0,0,350,500);
+    
+    sCtx.fillStyle = "white";
+    sCtx.font = "20px Montserrat";
+    sCtx.textAlign = "center";
+    sCtx.fillText("Scratch to read...", 175, 250);
+}
+
+function scratch(e) {
+    if (!isScratching) return;
+    const rect = sCanvas.getBoundingClientRect();
+    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+    
+    sCtx.globalCompositeOperation = 'destination-out';
+    sCtx.beginPath();
+    sCtx.arc(x, y, 30, 0, Math.PI * 2);
+    sCtx.fill();
+    
+    // Start typing when she starts scratching
+    startTypewriter();
+}
+
+sCanvas.addEventListener('mousedown', () => isScratching = true);
+sCanvas.addEventListener('touchstart', () => isScratching = true);
+window.addEventListener('mouseup', () => isScratching = false);
+window.addEventListener('touchend', () => isScratching = false);
+sCanvas.addEventListener('mousemove', scratch);
+sCanvas.addEventListener('touchmove', scratch);
+
+// --- 3. TYPEWRITER NOTE ---
+const noteText = "To the most incredible person I know... I hope this day is as magnetic and brilliant as you are. You deserve the world and more. Happy Birthday, Tinks! - Rick";
+let typed = false;
+
+function startTypewriter() {
+    if (typed) return;
+    typed = true;
+    let i = 0;
+    const target = document.getElementById('typewriter-note');
+    function type() {
+        if (i < noteText.length) {
+            target.innerHTML += noteText.charAt(i);
+            i++;
+            setTimeout(type, 50);
+        }
+    }
+    type();
+}
+
+function openScratchCard() {
+    document.getElementById('scratch-modal').classList.remove('hidden');
+    initScratch();
+}
+
+function closeScratchCard() {
+    document.getElementById('scratch-modal').classList.add('hidden');
+}
+
+</script>
+</body>
+</html>
